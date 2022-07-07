@@ -12,5 +12,5 @@ app.use(getRouters);
 app.use(postRouters);
 
 app.listen(process.env.PORT, () => {
-  console.log("Server runnig!!!");
+  console.log("Server running!!!");
 });

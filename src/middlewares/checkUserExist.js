@@ -1,13 +1,5 @@
 import userRegister from "../schemas/registerSchema.js";
-import { MongoClient } from "mongodb";
-import dotenv from "dotenv";
-
-dotenv.config();
-const cliente = new MongoClient(process.env.MONGO_URL);
-let db;
-cliente.connect().then(() => {
-  db = cliente.db(process.env.MONGO_NAME);
-});
+import db from "../db.js";
 
 async function checkUserExist(req, res, next) {
   const { error } = userRegister.validate(req.body, { abortEarly: false });
