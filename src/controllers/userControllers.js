@@ -43,7 +43,7 @@ export async function login(req, res) {
       } catch (error) {
         return res.send(error);
       }
-      return res.status(200).send({ token });
+      return res.status(200).send({ token, nome: user.nome });
     } else {
       return res.sendStatus(401);
     }
