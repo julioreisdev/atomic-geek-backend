@@ -3,13 +3,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import userLogin from "../schemas/loginSchema.js";
 import { v4 as uuid } from "uuid";
-
-dotenv.config();
-const cliente = new MongoClient(process.env.MONGO_URL);
-let db;
-cliente.connect().then(() => {
-  db = cliente.db(process.env.MONGO_NAME);
-});
+import db from "../db.js";
 
 export async function getExemplo(req, res) {
   res.send("Deu bom!!");
