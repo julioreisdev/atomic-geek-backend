@@ -43,3 +43,27 @@ export async function getCarrinho(req, res) {
     res.status(500).send(error);
   }
 }
+
+export async function deleteCarrinho(req, res) {
+  const idSchema = joi.object({
+    idProduct: joi.string().required(),
+  });
+  const { error } = idSchema.validate(req.body, { abortEarly: false });
+  if (error) {
+    const erros = error.details.map((detail) => detail.message);
+    return res.status(422).send(erros);
+  }
+  const session = res.locals.tokenValidation;
+  try {
+    const produto = await db
+      .collection("carrinho")
+      .findOne({ idProduct: req.body.idProduct, idUser: session.idUser });
+    if (!produto) {
+      return res.status(404).send("Produto não encontrado!");
+    }
+    await db.collection("carrinho").deleteOne(produto);
+    res.sendStatus(200);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
