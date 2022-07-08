@@ -7,6 +7,6 @@ const router = Router();
 
 router.get("/exemplo", getExemplo);
 router.get("/home", tokenValidation, getProducts);
-router.get("/carrinho", tokenValidation, getCarrinho);
+router.get("/carts", tokenValidation, getCarrinho);
 
 export default router;

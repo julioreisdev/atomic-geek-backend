@@ -4,6 +4,6 @@ import { tokenValidation } from "../middlewares/tokenValidation.js";
 
 const router = Router();
 
-router.delete("/carrinho", tokenValidation, deleteCarrinho);
+router.delete("/carts", tokenValidation, deleteCarrinho);
 
 export default router;
