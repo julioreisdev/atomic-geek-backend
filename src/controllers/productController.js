@@ -1,4 +1,5 @@
 import joi from "joi";
+import { ObjectId } from "mongodb";
 import db from "../db.js";
 
 export async function getProducts(req, res) {
@@ -58,7 +59,17 @@ export async function getCarrinho(req, res) {
       .collection("carts")
       .find({ idUser: session.idUser })
       .toArray();
-    res.status(200).send(produtos);
+    const ids = produtos[0].idProducts;
+    const products = [];
+    let total = 0;
+    for (let i = 0; i < ids.length; i++) {
+      let p = await db
+        .collection("products")
+        .findOne({ _id: ObjectId(ids[i]) });
+      products.push(p);
+      total += Number(p.preco);
+    }
+    res.status(200).send({ products, total });
   } catch (error) {
     res.status(500).send(error);
   }
@@ -74,15 +85,33 @@ export async function deleteCarrinho(req, res) {
     return res.status(422).send(erros);
   }
   const session = res.locals.tokenValidation;
+  let existe = false;
   try {
-    const produto = await db
+    const produtos = await db
       .collection("carts")
-      .findOne({ idProduct: req.body.idProduct, idUser: session.idUser });
-    if (!produto) {
-      return res.status(404).send("Produto não encontrado!");
+      .find({ idUser: session.idUser })
+      .toArray();
+    const ids = produtos[0].idProducts;
+    const newIds = [];
+    for (let i = 0; i < ids.length; i++) {
+      if (ids[i] === req.body.idProduct) {
+        ids[i] = "";
+        existe = true;
+        break;
+      }
     }
-    await db.collection("carts").deleteOne(produto);
-    res.sendStatus(200);
+    if (!existe) {
+      return res.status(404).send("Produto não existe no seu carrinho");
+    }
+    for (let i = 0; i < ids.length; i++) {
+      if (ids[i].length > 0) {
+        newIds.push(ids[i]);
+      }
+    }
+    await db
+      .collection("carts")
+      .updateOne({ idUser: session.idUser }, { $set: { idProducts: newIds } });
+    res.status(200).send(newIds);
   } catch (error) {
     res.status(500).send(error);
   }
