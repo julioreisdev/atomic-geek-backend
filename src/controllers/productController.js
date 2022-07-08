@@ -11,51 +11,43 @@ export async function getProducts(req, res) {
 }
 
 export async function selectProduct(req, res) {
-    const tokenValidation = res.locals.tokenValidation;
-    const { idProduct } = req.body;
-
-    try {
-        const findCart = await db.collection("carts").findOne({ idUser: tokenValidation.idUser })
-        if(!findCart) {
-            await db.collection("carts").insertOne({
-                idUser: tokenValidation.idUser,
-                idProducts: [idProduct]
-            })
-            return res.sendStatus(201);
-        } else {
-            const arrayAtualizado = [...findCart.idProducts, idProduct];
-            await db.collection("carts").updateOne(
-                { 
-                    idUser: findCart.idUser 
-                }, 
-                {
-                    $set: { idProducts: arrayAtualizado}
-                })
-            return res.sendStatus(200)
-        }
-    } catch (error) {
-        return res.status(500).send(error);
-    }
-}
-
-export async function postCarrinho(req, res) {
-  const idSchema = joi.object({
+  const id = joi.object({
     idProduct: joi.string().required(),
   });
-  const { error } = idSchema.validate(req.body, { abortEarly: false });
+
+  const tokenValidation = res.locals.tokenValidation;
+  const { idProduct } = req.body;
+
+  const { error } = id.validate(req.body, { abortEarly: false });
   if (error) {
     const erros = error.details.map((detail) => detail.message);
     return res.status(422).send(erros);
   }
-  const session = res.locals.tokenValidation;
+
   try {
-    await db.collection("carrinho").insertOne({
-      idUser: session.idUser,
-      idProduct: req.body.idProduct,
-    });
-    res.sendStatus(200);
+    const findCart = await db
+      .collection("carts")
+      .findOne({ idUser: tokenValidation.idUser });
+    if (!findCart) {
+      await db.collection("carts").insertOne({
+        idUser: tokenValidation.idUser,
+        idProducts: [idProduct],
+      });
+      return res.sendStatus(201);
+    } else {
+      const arrayAtualizado = [...findCart.idProducts, idProduct];
+      await db.collection("carts").updateOne(
+        {
+          idUser: findCart.idUser,
+        },
+        {
+          $set: { idProducts: arrayAtualizado },
+        }
+      );
+      return res.sendStatus(200);
+    }
   } catch (error) {
-    res.status(500).send(error);
+    return res.status(500).send(error);
   }
 }
 
@@ -63,7 +55,7 @@ export async function getCarrinho(req, res) {
   const session = res.locals.tokenValidation;
   try {
     const produtos = await db
-      .collection("carrinho")
+      .collection("carts")
       .find({ idUser: session.idUser })
       .toArray();
     res.status(200).send(produtos);
@@ -84,12 +76,12 @@ export async function deleteCarrinho(req, res) {
   const session = res.locals.tokenValidation;
   try {
     const produto = await db
-      .collection("carrinho")
+      .collection("carts")
       .findOne({ idProduct: req.body.idProduct, idUser: session.idUser });
     if (!produto) {
       return res.status(404).send("Produto não encontrado!");
     }
-    await db.collection("carrinho").deleteOne(produto);
+    await db.collection("carts").deleteOne(produto);
     res.sendStatus(200);
   } catch (error) {
     res.status(500).send(error);
